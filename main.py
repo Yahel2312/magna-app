@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Depends
+from fastapi import FastAPI
 from sqlalchemy.orm import Session
 from database import SessionLocal, engine
 import models
@@ -7,6 +7,7 @@ from datetime import datetime
 from datetime import timedelta
 from openpyxl import Workbook
 import os
+from fastapi.responses import FileResponse
 
 # Crear las tablas
 models.Base.metadata.create_all(bind=engine)
