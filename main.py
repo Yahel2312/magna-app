@@ -1,4 +1,4 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Depends
 from sqlalchemy.orm import Session
 from database import SessionLocal, engine
 import models
@@ -298,7 +298,4 @@ def ver_excel():
 def test_excel(db: Session = Depends(get_db)):
     generar_excel(db)
     return {"mensaje": "Excel generado"}
-
-    return {"mensaje": "VERSION NUEVA "}
-
 
