@@ -6,6 +6,7 @@ from pydantic import BaseModel
 from datetime import datetime
 from datetime import timedelta
 from openpyxl import Workbook
+import os
 
 # Crear las tablas
 models.Base.metadata.create_all(bind=engine)
