@@ -1,14 +1,13 @@
 from fastapi import FastAPI, Depends
 from sqlalchemy.orm import Session
 from database import SessionLocal, engine
-import models
 from pydantic import BaseModel
 from datetime import datetime
 from datetime import timedelta
 from openpyxl import Workbook
-import os
 from fastapi.responses import FileResponse
-
+import os
+import models
 # Crear las tablas
 models.Base.metadata.create_all(bind=engine)
 
@@ -275,10 +274,6 @@ def exportar(evento_id: int, db: Session = Depends(get_db)):
     wb.save(archivo)
 
     return FileResponse(archivo, filename=archivo)
-from fastapi.responses import FileResponse
-import os
-
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 @app.get("/")
 def home():
