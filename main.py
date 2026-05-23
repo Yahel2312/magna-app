@@ -32,7 +32,6 @@ def get_db():
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 def generar_excel(db):
-    print("GENERANDO EXCEL 🔥")
 
     asistencias = db.query(models.Asistencia).all()
 
@@ -45,9 +44,13 @@ def generar_excel(db):
         joven = db.query(models.Joven).filter_by(id=a.joven_id).first()
         ws.append([joven.nombre, str(a.fecha_hora)])
 
-    ruta = os.path.join(BASE_DIR, "asistencia.xlsx")
+    nombre = f"asistencia_{datetime.now().strftime('%Y%m%d_%H%M%S')}.xlsx"
+
+    ruta = os.path.join(BASE_DIR, nombre)
+
     wb.save(ruta)
 
+    return ruta, nombre
 
 @app.get("/conteo")
 def conteo(db: Session = Depends(get_db)):
@@ -245,8 +248,6 @@ def evento_activo(db: Session = Depends(get_db)):
 
     return {"evento_id": evento.id}
 
-
-@app.get("/api/exportar/{evento_id}")
 def exportar(evento_id: int, db: Session = Depends(get_db)):
 
     asistencias = db.query(models.Asistencia).filter(
@@ -283,11 +284,7 @@ def home():
 @app.get("/admin/excel")
 def ver_excel(db: Session = Depends(get_db)):
 
-    generar_excel(db)
-
-    ruta = os.path.join(BASE_DIR, "asistencia.xlsx")
-
-    nombre = f"asistencia_{datetime.now().strftime('%Y%m%d_%H%M%S')}.xlsx"
+    ruta, nombre = generar_excel(db)
 
     return FileResponse(
         ruta,
@@ -298,4 +295,5 @@ def ver_excel(db: Session = Depends(get_db)):
 def test_excel(db: Session = Depends(get_db)):
     generar_excel(db)
     return {"mensaje": "Excel generado"}
+
 
