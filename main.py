@@ -295,12 +295,42 @@ def test_excel(db: Session = Depends(get_db)):
     generar_excel(db)
     return {"mensaje": "Excel generado"}
 
-@app.get("/debug/db")
-def debug_db(db: Session = Depends(get_db)):
+@app.get("/importar_excel")
+def importar_excel(db: Session = Depends(get_db)):
 
-    total = db.query(models.Joven).count()
+    archivo = os.path.join(BASE_DIR, "Chicos.xlsx")
+
+    wb = load_workbook(archivo)
+    ws = wb.active
+
+    agregados = 0
+
+    for fila in ws.iter_rows(min_row=2, values_only=True):
+
+        for nombre in fila:
+
+            if nombre and str(nombre).strip():
+
+                existe = db.query(models.Joven).filter(
+                    models.Joven.nombre == str(nombre).strip()
+                ).first()
+
+                if not existe:
+
+                    nuevo = models.Joven(
+                        nombre=str(nombre).strip(),
+                        puntos_totales=0,
+                        puntos_racha=0,
+                        racha_actual=0,
+                        racha_maxima=0
+                    )
+
+                    db.add(nuevo)
+                    agregados += 1
+
+    db.commit()
 
     return {
-        "total_jovenes": total
+        "mensaje": "Importación completada",
+        "agregados": agregados
     }
-
