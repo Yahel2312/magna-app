@@ -4,7 +4,7 @@ from database import SessionLocal, engine
 from pydantic import BaseModel
 from datetime import datetime
 from datetime import timedelta
-from openpyxl import Workbook
+from openpyxl import Workbook, load_workbook
 from fastapi.responses import FileResponse
 import os
 import models
@@ -298,37 +298,50 @@ def test_excel(db: Session = Depends(get_db)):
 @app.get("/importar_excel")
 def importar_excel(db: Session = Depends(get_db)):
 
-    archivo = os.path.join(BASE_DIR, "Chicos.xlsx")
+    try:
 
-    wb = load_workbook(archivo)
-    ws = wb.active
+        archivo = os.path.join(BASE_DIR, "Chicos.xlsx")
 
-    agregados = 0
+        print("RUTA:", archivo)
 
-    for fila in ws.iter_rows(min_row=2, values_only=True):
+        wb = load_workbook(archivo)
 
-        for nombre in fila:
+        ws = wb.active
 
-            if nombre and str(nombre).strip():
+        agregados = 0
 
-                existe = db.query(models.Joven).filter(
-                    models.Joven.nombre == str(nombre).strip()
-                ).first()
+        for fila in ws.iter_rows(min_row=2, values_only=True):
 
-                if not existe:
+            for nombre in fila:
 
-                    nuevo = models.Joven(
-                        nombre=str(nombre).strip(),
-                        puntos_totales=0,
-                        puntos_racha=0,
-                        racha_actual=0,
-                        racha_maxima=0
-                    )
+                if nombre and str(nombre).strip():
 
-                    db.add(nuevo)
-                    agregados += 1
+                    existe = db.query(models.Joven).filter(
+                        models.Joven.nombre == str(nombre).strip()
+                    ).first()
 
-    db.commit()
+                    if not existe:
+
+                        nuevo = models.Joven(
+                            nombre=str(nombre).strip(),
+                            puntos_totales=0,
+                            puntos_racha=0,
+                            racha_actual=0,
+                            racha_maxima=0
+                        )
+
+                        db.add(nuevo)
+                        agregados += 1
+
+        db.commit()
+
+        return {
+            "mensaje": "Importación completada",
+            "agregados": agregados
+        }
+
+    except Exception as e:
+        return {"error": str(e)}
 
     return {
         "mensaje": "Importación completada",
