@@ -268,19 +268,27 @@ def ver_excel(db: Session = Depends(get_db)):
     wb = Workbook()
     ws = wb.active
 
-    ws.title = "Asistencia"
+    ws.title = "Asistencias"
 
-    ws.append(["Nombre", "Fecha"])
+    ws.append([
+        "Nombre",
+        "Evento",
+        "Fecha"
+    ])
 
     for a in asistencias:
+
         joven = db.query(models.Joven).filter_by(id=a.joven_id).first()
+
+        evento = db.query(models.Evento).filter_by(id=a.evento_id).first()
 
         ws.append([
             joven.nombre,
+            evento.nombre if evento else "Sin evento",
             str(a.fecha_hora)
         ])
 
-    nombre = f"asistencia_{datetime.now().strftime('%Y%m%d_%H%M%S')}.xlsx"
+    nombre = f"asistencias_{datetime.now().strftime('%Y%m%d_%H%M%S')}.xlsx"
 
     ruta = os.path.join(BASE_DIR, nombre)
 
@@ -294,56 +302,3 @@ def ver_excel(db: Session = Depends(get_db)):
 def test_excel(db: Session = Depends(get_db)):
     generar_excel(db)
     return {"mensaje": "Excel generado"}
-
-@app.get("/importar_excel")
-def importar_excel(db: Session = Depends(get_db)):
-
-    try:
-
-        archivo = os.path.join(BASE_DIR, "Chicos.xlsx")
-
-        print("RUTA:", archivo)
-
-        wb = load_workbook(archivo)
-
-        ws = wb.active
-
-        agregados = 0
-
-        for fila in ws.iter_rows(min_row=2, values_only=True):
-
-            for nombre in fila:
-
-                if nombre and str(nombre).strip():
-
-                    existe = db.query(models.Joven).filter(
-                        models.Joven.nombre == str(nombre).strip()
-                    ).first()
-
-                    if not existe:
-
-                        nuevo = models.Joven(
-                            nombre=str(nombre).strip(),
-                            puntos_totales=0,
-                            puntos_racha=0,
-                            racha_actual=0,
-                            racha_maxima=0
-                        )
-
-                        db.add(nuevo)
-                        agregados += 1
-
-        db.commit()
-
-        return {
-            "mensaje": "Importación completada",
-            "agregados": agregados
-        }
-
-    except Exception as e:
-        return {"error": str(e)}
-
-    return {
-        "mensaje": "Importación completada",
-        "agregados": agregados
-    }
