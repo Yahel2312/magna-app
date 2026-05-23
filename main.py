@@ -295,5 +295,12 @@ def test_excel(db: Session = Depends(get_db)):
     generar_excel(db)
     return {"mensaje": "Excel generado"}
 
+@app.get("/debug/db")
+def debug_db(db: Session = Depends(get_db)):
 
+    total = db.query(models.Joven).count()
+
+    return {
+        "total_jovenes": total
+    }
 
