@@ -281,13 +281,18 @@ def home():
 
 
 @app.get("/admin/excel")
-def ver_excel():
+def ver_excel(db: Session = Depends(get_db)):
+
+    generar_excel(db)
+
     ruta = os.path.join(BASE_DIR, "asistencia.xlsx")
 
-    if not os.path.exists(ruta):
-        return {"error": "Excel no existe aún"}
+    nombre = f"asistencia_{datetime.now().strftime('%Y%m%d_%H%M%S')}.xlsx"
 
-    return FileResponse(ruta, filename="asistencia.xlsx")
+    return FileResponse(
+        ruta,
+        filename=nombre
+    )
 
 @app.get("/test/excel")
 def test_excel(db: Session = Depends(get_db)):
