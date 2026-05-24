@@ -12,7 +12,15 @@ import models
 models.Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="Asistencia Juvenil Gamificada")
+@app.on_event("startup")
+def startup_event():
 
+    db = SessionLocal()
+
+    try:
+        importar_chicos_automatico(db)
+    finally:
+        db.close()
 # ---------------------------
 # MODELO PARA ENTRADA DE DATOS
 # ---------------------------
@@ -344,6 +352,44 @@ def importar_excel(db: Session = Depends(get_db)):
         "agregados": agregados,
         "total_actual": total
     }
+
+def importar_chicos_automatico(db):
+
+    archivo = os.path.join(BASE_DIR, "Chicos.xlsx")
+
+    wb = load_workbook(archivo)
+    ws = wb.active
+
+    agregados = 0
+
+    for fila in ws.iter_rows(min_row=2, values_only=True):
+
+        for nombre in fila:
+
+            if nombre and str(nombre).strip():
+
+                nombre_limpio = str(nombre).strip()
+
+                existe = db.query(models.Joven).filter(
+                    models.Joven.nombre.ilike(nombre_limpio)
+                ).first()
+
+                if not existe:
+
+                    nuevo = models.Joven(
+                        nombre=nombre_limpio,
+                        puntos_totales=0,
+                        puntos_racha=0,
+                        racha_actual=0,
+                        racha_maxima=0
+                    )
+
+                    db.add(nuevo)
+                    agregados += 1
+
+    db.commit()
+
+    print(f"IMPORTADOS AUTOMÁTICAMENTE: {agregados}")
 @app.get("/test/excel")
 def test_excel(db: Session = Depends(get_db)):
     generar_excel(db)
