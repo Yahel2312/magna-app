@@ -383,16 +383,26 @@ def importar_chicos_automatico(db):
 
     db.commit()
 
-    print(f"IMPORTADOS AUTOMÁTICAMENTE: {agregados}")
-@app.get("/test/excel")
-def test_excel(db: Session = Depends(get_db)):
-    generar_excel(db)
-    return {"mensaje": "Excel generado"}
-
-@app.get("/debug/asistencias")
+ @app.get("/debug/asistencias")
 def debug_asistencias(db: Session = Depends(get_db)):
+    asistencias = db.query(models.Asistencia).all()
+
+    resultado = []
+
+    for a in asistencias:
+        joven = db.query(models.Joven).filter(
+            models.Joven.id == a.joven_id
+        ).first()
+
+        resultado.append({
+            "asistencia_id": a.id,
+            "joven_id": a.joven_id,
+            "nombre": joven.nombre if joven else "NO ENCONTRADO",
+            "evento_id": a.evento_id,
+            "fecha": str(a.fecha_hora)
+        })
 
     return {
-        "jovenes": db.query(models.Joven).count(),
-        "asistencias": db.query(models.Asistencia).count()
+        "total_asistencias": len(resultado),
+        "registros": resultado
     }
