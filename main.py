@@ -319,7 +319,16 @@ def excel_asistentes(db: Session = Depends(get_db)):
 
     ws.append(["Nombre", "Evento ID", "Fecha"])
 
+    usados = set()
+
     for a in asistencias:
+        clave = (a.joven_id, a.evento_id)
+
+        if clave in usados:
+            continue
+
+        usados.add(clave)
+
         joven = db.query(models.Joven).filter(
             models.Joven.id == a.joven_id
         ).first()
