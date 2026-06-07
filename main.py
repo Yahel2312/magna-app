@@ -379,3 +379,11 @@ def importar_chicos_automatico(db):
 def test_excel(db: Session = Depends(get_db)):
     generar_excel(db)
     return {"mensaje": "Excel generado"}
+
+@app.get("/debug/asistencias")
+def debug_asistencias(db: Session = Depends(get_db)):
+
+    return {
+        "jovenes": db.query(models.Joven).count(),
+        "asistencias": db.query(models.Asistencia).count()
+    }
