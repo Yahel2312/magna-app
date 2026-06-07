@@ -186,6 +186,20 @@ def buscar(nombre: str, db: Session = Depends(get_db)):
         {"id": j.id, "nombre": j.nombre}
         for j in resultados
     ]
+def generar_excel(db):
+    asistencias = db.query(models.Asistencia).all()
+
+    wb = Workbook()
+    ws = wb.active
+    ws.title = "Asistencias"
+
+    ws.append(["Nombre", "Evento ID", "Fecha"])
+
+    for a in asistencias:
+        joven = db.query(models.Joven).filter(
+            models.Joven.id == a.joven_id
+        ).first()
+
 @app.post("/asistencia_manual")
 def asistencia_manual(joven_id: int, evento_id: int, db: Session = Depends(get_db)):
 
@@ -382,9 +396,8 @@ def importar_chicos_automatico(db):
                     agregados += 1
 
     db.commit()
-
  @app.get("/debug/asistencias")
-def debug_asistencias(db: Session = Depends(get_db)):
+ def debug_asistencias(db: Session = Depends(get_db)):
     asistencias = db.query(models.Asistencia).all()
 
     resultado = []
