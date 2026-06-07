@@ -308,50 +308,35 @@ def ver_excel(db: Session = Depends(get_db)):
 
     )
 
-@app.get("/importar_excel")
-def importar_excel(db: Session = Depends(get_db)):
+@app.get("/admin/excel/asistentes")
+def excel_asistentes(db: Session = Depends(get_db)):
 
-    archivo = os.path.join(BASE_DIR, "Chicos.xlsx")
+    asistencias = db.query(models.Asistencia).all()
 
-    wb = load_workbook(archivo)
+    wb = Workbook()
     ws = wb.active
+    ws.title = "Asistentes"
 
-    agregados = 0
+    ws.append(["Nombre", "Evento ID", "Fecha"])
 
-    for fila in ws.iter_rows(min_row=2, values_only=True):
+    for a in asistencias:
+        joven = db.query(models.Joven).filter(
+            models.Joven.id == a.joven_id
+        ).first()
 
-        for nombre in fila:
+        if joven:
+            ws.append([
+                joven.nombre,
+                a.evento_id,
+                str(a.fecha_hora)
+            ])
 
-            if nombre and str(nombre).strip():
+    nombre = f"asistentes_{datetime.now().strftime('%Y%m%d_%H%M%S')}.xlsx"
+    ruta = os.path.join(BASE_DIR, nombre)
 
-                nombre_limpio = str(nombre).strip()
+    wb.save(ruta)
 
-                existe = db.query(models.Joven).filter(
-                    models.Joven.nombre.ilike(nombre_limpio)
-                ).first()
-
-                if not existe:
-
-                    nuevo = models.Joven(
-                        nombre=nombre_limpio,
-                        puntos_totales=0,
-                        puntos_racha=0,
-                        racha_actual=0,
-                        racha_maxima=0
-                    )
-
-                    db.add(nuevo)
-                    agregados += 1
-
-    db.commit()
-
-    total = db.query(models.Joven).count()
-
-    return {
-        "mensaje": "Importación completada",
-        "agregados": agregados,
-        "total_actual": total
-    }
+    return FileResponse(ruta, filename=nombre)
 
 def importar_chicos_automatico(db):
 
