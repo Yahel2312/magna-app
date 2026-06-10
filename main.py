@@ -396,8 +396,8 @@ def importar_chicos_automatico(db):
                     agregados += 1
 
     db.commit()
- @app.get("/debug/asistencias")
- def debug_asistencias(db: Session = Depends(get_db)):
+@app.get("/debug/asistencias")
+def debug_asistencias(db: Session = Depends(get_db)):
     asistencias = db.query(models.Asistencia).all()
 
     resultado = []
