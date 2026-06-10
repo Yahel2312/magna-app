@@ -389,50 +389,7 @@ def excel_asistentes(db: Session = Depends(get_db)):
 
     return FileResponse(ruta, filename=nombre)
 
-def importar_chicos_automatico(db):
 
-    archivo = os.path.join(BASE_DIR, "Chicos.xlsx")
-
-    wb = load_workbook(archivo)
-    ws = wb.active
-
-    grupos = [
-        "Secundarios",
-        "Prepos",
-        "Universitarios",
-        "Profesionistas"
-    ]
-
-    for fila in ws.iter_rows(min_row=2, values_only=True):
-
-        for i, nombre in enumerate(fila[:4]):
-
-            if nombre and str(nombre).strip():
-
-                nombre_limpio = str(nombre).strip()
-                grupo = grupos[i]
-
-                existe = db.query(models.Joven).filter(
-                    models.Joven.nombre.ilike(nombre_limpio)
-                ).first()
-
-                if not existe:
-
-                    nuevo = models.Joven(
-                        nombre=nombre_limpio,
-                        grupo=grupo,
-                        puntos_totales=0,
-                        puntos_racha=0,
-                        racha_actual=0,
-                        racha_maxima=0
-                    )
-
-                    db.add(nuevo)
-
-                else:
-                    existe.grupo = grupo
-
-    db.commit()
 @app.get("/debug/asistencias")
 def debug_asistencias(db: Session = Depends(get_db)):
     asistencias = db.query(models.Asistencia).all()
