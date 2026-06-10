@@ -38,6 +38,24 @@ def get_db():
         db.close()
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+def obtener_o_crear_evento(db):
+    evento = db.query(models.Evento)\
+        .order_by(models.Evento.id.desc())\
+        .first()
+
+    if evento:
+        return evento
+
+    nuevo_evento = models.Evento(
+        fecha=datetime.now(),
+        activo=True
+    )
+
+    db.add(nuevo_evento)
+    db.commit()
+    db.refresh(nuevo_evento)
+
+    return nuevo_evento
 
 @app.get("/conteo")
 def conteo(db: Session = Depends(get_db)):
@@ -240,6 +258,12 @@ def conteo_evento(evento_id: int, db: Session = Depends(get_db)):
 
 @app.get("/evento/activo")
 def evento_activo(db: Session = Depends(get_db)):
+    evento = obtener_o_crear_evento(db)
+
+    return {
+        "evento_id": evento.id,
+        "fecha": str(evento.fecha)
+    }
     evento = db.query(models.Evento)\
         .order_by(models.Evento.id.desc())\
         .first()
