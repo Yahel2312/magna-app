@@ -396,37 +396,41 @@ def importar_chicos_automatico(db):
     wb = load_workbook(archivo)
     ws = wb.active
 
-    agregados = 0
+    grupos = [
+        "Secundarios",
+        "Prepos",
+        "Universitarios",
+        "Profesionistas"
+    ]
 
-    grupos = ["Secundarios", "Prepos", "Universitarios", "Profesionistas"]
+    for fila in ws.iter_rows(min_row=2, values_only=True):
 
-for fila in ws.iter_rows(min_row=2, values_only=True):
+        for i, nombre in enumerate(fila[:4]):
 
-    for i, nombre in enumerate(fila[:4]):
+            if nombre and str(nombre).strip():
 
-        if nombre and str(nombre).strip():
+                nombre_limpio = str(nombre).strip()
+                grupo = grupos[i]
 
-            nombre_limpio = str(nombre).strip()
-            grupo = grupos[i]
+                existe = db.query(models.Joven).filter(
+                    models.Joven.nombre.ilike(nombre_limpio)
+                ).first()
 
-            existe = db.query(models.Joven).filter(
-                models.Joven.nombre.ilike(nombre_limpio)
-            ).first()
+                if not existe:
 
-            if not existe:
-                nuevo = models.Joven(
-                    nombre=nombre_limpio,
-                    grupo=grupo,
-                    puntos_totales=0,
-                    puntos_racha=0,
-                    racha_actual=0,
-                    racha_maxima=0
-                )
+                    nuevo = models.Joven(
+                        nombre=nombre_limpio,
+                        grupo=grupo,
+                        puntos_totales=0,
+                        puntos_racha=0,
+                        racha_actual=0,
+                        racha_maxima=0
+                    )
 
-                db.add(nuevo)
+                    db.add(nuevo)
 
-            else:
-                existe.grupo = grupo
+                else:
+                    existe.grupo = grupo
 
     db.commit()
 @app.get("/debug/asistencias")
