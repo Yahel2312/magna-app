@@ -39,9 +39,12 @@ def get_db():
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 def obtener_o_crear_evento(db):
-    evento = db.query(models.Evento)\
-        .order_by(models.Evento.id.desc())\
-        .first()
+    hoy = datetime.now().date()
+
+    evento = db.query(models.Evento).filter(
+        models.Evento.fecha >= datetime.combine(hoy, datetime.min.time()),
+        models.Evento.fecha <= datetime.combine(hoy, datetime.max.time())
+    ).first()
 
     if evento:
         return evento
