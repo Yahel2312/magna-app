@@ -419,3 +419,9 @@ def debug_asistencias(db: Session = Depends(get_db)):
         "total_asistencias": len(resultado),
         "registros": resultado
     }
+@app.get("/debug/db")
+def debug_db():
+    return {
+        "database": str(engine.url)
+    }
+
