@@ -419,9 +419,43 @@ def debug_asistencias(db: Session = Depends(get_db)):
         "total_asistencias": len(resultado),
         "registros": resultado
     }
-@app.get("/debug/db")
-def debug_db():
-    return {
-        "database": str(engine.url)
-    }
+@app.get("/admin/excel/evento/{evento_id}")
+def excel_evento(evento_id: int, db: Session = Depends(get_db)):
+
+    evento = db.query(models.Evento).filter(
+        models.Evento.id == evento_id
+    ).first()
+
+    if not evento:
+        return {"error": "Evento no encontrado"}
+
+    asistencias = db.query(models.Asistencia).filter(
+        models.Asistencia.evento_id == evento_id
+    ).all()
+
+    wb = Workbook()
+    ws = wb.active
+    ws.title = f"Evento {evento_id}"
+
+    ws.append(["Nombre", "Evento ID", "Fecha"])
+
+    for a in asistencias:
+        joven = db.query(models.Joven).filter(
+            models.Joven.id == a.joven_id
+        ).first()
+
+        if joven:
+            ws.append([
+                joven.nombre,
+                evento_id,
+                str(a.fecha_hora)
+            ])
+
+    nombre = f"asistencia_evento_{evento_id}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.xlsx"
+    ruta = os.path.join(BASE_DIR, nombre)
+
+    wb.save(ruta)
+
+    return FileResponse(ruta, filename=nombre)
+
 
