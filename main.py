@@ -481,5 +481,12 @@ def excel_evento(evento_id: int, db: Session = Depends(get_db)):
     wb.save(ruta)
 
     return FileResponse(ruta, filename=nombre)
+@app.get("/admin/excel/activo")
+def excel_evento_activo(db: Session = Depends(get_db)):
+
+    evento = obtener_o_crear_evento(db)
+
+    return excel_evento(evento.id, db)
+
 
 
