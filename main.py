@@ -462,9 +462,17 @@ def excel_evento(evento_id: int, db: Session = Depends(get_db)):
 
     wb = Workbook()
     ws = wb.active
-    ws.title = f"Evento {evento_id}"
+    ws.title = "Asistencia"
 
-    ws.append(["Nombre", "Evento ID", "Fecha"])
+    ws["A1"] = "Registro de Asistencia"
+    ws["A2"] = f"Evento ID: {evento.id}"
+    ws["A3"] = f"Fecha del evento: {evento.fecha}"
+    ws["A4"] = f"Total asistentes: {len(asistencias)}"
+
+    ws.append([])
+    ws.append(["No.", "Nombre", "Hora de registro"])
+
+    fila_num = 1
 
     for a in asistencias:
         joven = db.query(models.Joven).filter(
@@ -473,10 +481,11 @@ def excel_evento(evento_id: int, db: Session = Depends(get_db)):
 
         if joven:
             ws.append([
+                fila_num,
                 joven.nombre,
-                evento_id,
                 str(a.fecha_hora)
             ])
+            fila_num += 1
 
     nombre = f"asistencia_evento_{evento_id}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.xlsx"
     ruta = os.path.join(BASE_DIR, nombre)
