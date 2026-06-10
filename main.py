@@ -6,8 +6,10 @@ from datetime import datetime
 from datetime import timedelta
 from openpyxl import Workbook, load_workbook
 from fastapi.responses import FileResponse
+from sqlalchemy import text
 import os
 import models
+
 # Crear las tablas
 models.Base.metadata.create_all(bind=engine)
 
@@ -244,7 +246,6 @@ def asistencia_manual(joven_id: int, evento_id: int, db: Session = Depends(get_d
         joven.puntos_totales += 10
         db.commit()
 
-    # 🔥 SIEMPRE GENERA EXCEL (clave)
     generar_excel(db)
 
     return {"mensaje": "Asistencia registrada"}
@@ -397,30 +398,35 @@ def importar_chicos_automatico(db):
 
     agregados = 0
 
-    for fila in ws.iter_rows(min_row=2, values_only=True):
+    grupos = ["Secundarios", "Prepos", "Universitarios", "Profesionistas"]
 
-        for nombre in fila:
+for fila in ws.iter_rows(min_row=2, values_only=True):
 
-            if nombre and str(nombre).strip():
+    for i, nombre in enumerate(fila[:4]):
 
-                nombre_limpio = str(nombre).strip()
+        if nombre and str(nombre).strip():
 
-                existe = db.query(models.Joven).filter(
-                    models.Joven.nombre.ilike(nombre_limpio)
-                ).first()
+            nombre_limpio = str(nombre).strip()
+            grupo = grupos[i]
 
-                if not existe:
+            existe = db.query(models.Joven).filter(
+                models.Joven.nombre.ilike(nombre_limpio)
+            ).first()
 
-                    nuevo = models.Joven(
-                        nombre=nombre_limpio,
-                        puntos_totales=0,
-                        puntos_racha=0,
-                        racha_actual=0,
-                        racha_maxima=0
-                    )
+            if not existe:
+                nuevo = models.Joven(
+                    nombre=nombre_limpio,
+                    grupo=grupo,
+                    puntos_totales=0,
+                    puntos_racha=0,
+                    racha_actual=0,
+                    racha_maxima=0
+                )
 
-                    db.add(nuevo)
-                    agregados += 1
+                db.add(nuevo)
+
+            else:
+                existe.grupo = grupo
 
     db.commit()
 @app.get("/debug/asistencias")
@@ -500,5 +506,10 @@ def excel_evento_activo(db: Session = Depends(get_db)):
 
     return excel_evento(evento.id, db)
 
+@app.get("/admin/migrar-grupo")
+def migrar_grupo(db: Session = Depends(get_db)):
+    db.execute(text("ALTER TABLE jovenes ADD COLUMN IF NOT EXISTS grupo VARCHAR DEFAULT 'Sin grupo'"))
+    db.commit()
+    return {"mensaje": "Columna grupo agregada"}
 
 

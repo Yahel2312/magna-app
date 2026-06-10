@@ -7,13 +7,13 @@ class Joven(Base):
     __tablename__ = "jovenes"
 
     id = Column(Integer, primary_key=True, index=True)
-    nombre = Column(String, index=True)
+    nombre = Column(String)
+    grupo = Column(String, default="Sin grupo")
     puntos_totales = Column(Integer, default=0)
     puntos_racha = Column(Integer, default=0)
     racha_actual = Column(Integer, default=0)
     racha_maxima = Column(Integer, default=0)
-
-    asistencias = relationship("Asistencia", back_populates="joven")
+    
 
 
 class Evento(Base):
