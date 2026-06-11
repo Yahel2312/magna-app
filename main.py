@@ -76,16 +76,22 @@ def importar_chicos_automatico(db):
                     existe.grupo = grupo
 
     db.commit()
+def migrar_grupo_si_no_existe(db):
+    db.execute(text("""
+        ALTER TABLE jovenes
+        ADD COLUMN IF NOT EXISTS grupo VARCHAR DEFAULT 'Sin grupo'
+    """))
+    db.commit()
+
 @app.on_event("startup")
 def startup_event():
-
     db = SessionLocal()
 
     try:
+        migrar_grupo_si_no_existe(db)
         importar_chicos_automatico(db)
     finally:
         db.close()
-
 def obtener_o_crear_evento(db):
     hoy = datetime.now().date()
 
