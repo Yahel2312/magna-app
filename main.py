@@ -489,7 +489,7 @@ def excel_evento(evento_id: int, db: Session = Depends(get_db)):
     ws["A4"] = f"Total asistentes: {len(asistencias)}"
 
     ws.append([])
-    ws.append(["No.", "Nombre", "Hora de registro"])
+    ws.append(["No.", "Nombre", "Grupo", "Hora de registro"])
 
     fila_num = 1
 
@@ -502,6 +502,7 @@ def excel_evento(evento_id: int, db: Session = Depends(get_db)):
             ws.append([
                 fila_num,
                 joven.nombre,
+                joven.grupo,
                 str(a.fecha_hora)
             ])
             fila_num += 1
