@@ -20,11 +20,10 @@ class Evento(Base):
     __tablename__ = "eventos"
 
     id = Column(Integer, primary_key=True, index=True)
-    fecha = Column(DateTime, default=datetime.utcnow)
+    fecha = Column(DateTime, default=datetime.now)
     activo = Column(Boolean, default=True)
 
-asistencias = relationship("Asistencia", back_populates="evento")
-
+    asistencias = relationship("Asistencia", back_populates="evento")
 
 class Asistencia(Base):
     __tablename__ = "asistencias"
