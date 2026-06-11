@@ -535,3 +535,15 @@ def migrar_grupo(db: Session = Depends(get_db)):
 
     return {"mensaje": "Columna grupo creada correctamente"}
 
+@app.get("/debug/grupos")
+def debug_grupos(db: Session = Depends(get_db)):
+
+    jovenes = db.query(models.Joven).limit(20).all()
+
+    return [
+        {
+            "nombre": j.nombre,
+            "grupo": j.grupo
+        }
+        for j in jovenes
+    ]
