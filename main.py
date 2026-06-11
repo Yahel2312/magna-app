@@ -7,6 +7,8 @@ from datetime import timedelta
 from openpyxl import Workbook, load_workbook
 from fastapi.responses import FileResponse
 from sqlalchemy import text
+from openpyxl.styles import Font
+from openpyxl.styles import Font, Alignment
 import os
 import models
 
@@ -479,18 +481,33 @@ def excel_evento(evento_id: int, db: Session = Depends(get_db)):
         models.Asistencia.evento_id == evento_id
     ).all()
 
+    conteo_grupos = {
+        "Secundarios": 0,
+        "Prepos": 0,
+        "Universitarios": 0,
+        "Profesionistas": 0,
+        "Sin grupo": 0
+    }
+
     wb = Workbook()
     ws = wb.active
     ws.title = "Asistencia"
 
     ws["A1"] = "Registro de Asistencia"
+    ws["A1"].font = Font(bold=True, size=14)
+
     ws["A2"] = f"Evento ID: {evento.id}"
     ws["A3"] = f"Fecha del evento: {evento.fecha}"
     ws["A4"] = f"Total asistentes: {len(asistencias)}"
 
-    ws.append([])
-    ws.append(["No.", "Nombre", "Grupo", "Hora de registro"])
+    fila_tabla = 11
 
+    ws["A6"] = "Resumen por grupo"
+    ws["A6"].font = Font(bold=True)
+
+    fila_resumen = 7
+
+    registros = []
     fila_num = 1
 
     for a in asistencias:
@@ -499,13 +516,50 @@ def excel_evento(evento_id: int, db: Session = Depends(get_db)):
         ).first()
 
         if joven:
-            ws.append([
+            grupo = joven.grupo or "Sin grupo"
+
+            if grupo not in conteo_grupos:
+                conteo_grupos[grupo] = 0
+
+            conteo_grupos[grupo] += 1
+
+            registros.append([
                 fila_num,
                 joven.nombre,
-                joven.grupo,
+                grupo,
                 str(a.fecha_hora)
             ])
+
             fila_num += 1
+
+    for grupo, total in conteo_grupos.items():
+        ws[f"A{fila_resumen}"] = grupo
+        ws[f"B{fila_resumen}"] = total
+        fila_resumen += 1
+
+    ws.append([])
+    ws.append([])
+
+    ws[f"A{fila_tabla}"] = "No."
+    ws[f"B{fila_tabla}"] = "Nombre"
+    ws[f"C{fila_tabla}"] = "Grupo"
+    ws[f"D{fila_tabla}"] = "Hora de registro"
+
+    for cell in ws[fila_tabla]:
+        cell.font = Font(bold=True)
+        cell.alignment = Alignment(horizontal="center")
+
+    for registro in registros:
+        ws.append(registro)
+
+    ws.column_dimensions["A"].width = 8
+    ws.column_dimensions["B"].width = 35
+    ws.column_dimensions["C"].width = 22
+    ws.column_dimensions["D"].width = 25
+
+    for row in ws.iter_rows():
+        for cell in row:
+            cell.alignment = Alignment(horizontal="center")
 
     nombre = f"asistencia_evento_{evento_id}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.xlsx"
     ruta = os.path.join(BASE_DIR, nombre)
