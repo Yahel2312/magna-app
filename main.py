@@ -519,4 +519,13 @@ def migrar_grupo(db: Session = Depends(get_db)):
     db.commit()
     return {"mensaje": "Columna grupo agregada"}
 
+@app.get("/admin/migrar-grupo")
+def migrar_grupo(db: Session = Depends(get_db)):
+    db.execute(text("""
+        ALTER TABLE jovenes
+        ADD COLUMN IF NOT EXISTS grupo VARCHAR DEFAULT 'Sin grupo'
+    """))
+    db.commit()
+
+    return {"mensaje": "Columna grupo creada correctamente"}
 
