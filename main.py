@@ -6,6 +6,7 @@ from datetime import datetime
 from datetime import timedelta
 from openpyxl import Workbook, load_workbook
 from fastapi.responses import FileResponse
+from fastapi.staticfiles import StaticFiles
 from sqlalchemy import text
 from openpyxl.styles import Font
 from openpyxl.styles import Font, Alignment
@@ -15,7 +16,15 @@ import models
 # Crear las tablas
 models.Base.metadata.create_all(bind=engine)
 
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
 app = FastAPI(title="Asistencia Juvenil Gamificada")
+app.mount(
+    "/static",
+    StaticFiles(directory=os.path.join(BASE_DIR, "static")),
+    name="static"
+)
+
 # ---------------------------
 # MODELO PARA ENTRADA DE DATOS
 # ---------------------------
@@ -32,7 +41,6 @@ def get_db():
     finally:
         db.close()
 
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 def importar_chicos_automatico(db):
 
