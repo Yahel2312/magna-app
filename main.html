@@ -10,13 +10,15 @@
         }
 
         body {
-            font-family: Arial, sans-serif;
-            text-align: center;
-            background: #0b2f35;
-            color: white;
-            margin: 0;
-            min-height: 100vh;
-        }
+    font-family: Arial, sans-serif;
+    text-align: center;
+    background: #0b2f35;
+    color: white;
+    margin: 0;
+    min-height: 100vh;
+
+    position: relative;
+}
 
         .hero-pc,
         .hero-mobile {
@@ -34,10 +36,15 @@
         }
 
         .contenedor {
+    position: absolute;
+    top: 40px;
+    left: 50%;
+    transform: translateX(-50%);
+
     width: 92%;
     max-width: 500px;
-    margin: 20px auto;
-        }
+    z-index: 10;
+}
         h1 {
             font-size: 24px;
             margin: 0 0 10px 0;
@@ -95,9 +102,9 @@
     }
 
     .contenedor {
-        margin: 5px auto 25px auto;
-        padding: 0 14px;
-    }
+    top: 25px;
+    padding: 0 14px;
+}
 
     h1 {
         font-size: 21px;
