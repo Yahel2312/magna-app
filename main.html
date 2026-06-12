@@ -95,7 +95,7 @@
     }
 
     .contenedor {
-        margin: 20px auto 25px auto;
+        margin: 5px auto 25px auto;
         padding: 0 14px;
     }
 
@@ -125,9 +125,6 @@
 </div>
 
 <div class="contenedor">
-    <h1>Registro de Asistencia</h1>
-
-    <h2 id="contador">Asistentes: 0</h2>
 
     <input type="text" id="buscador" placeholder="Escribe tu nombre..." onkeyup="buscar()">
 
@@ -145,8 +142,6 @@ async function obtenerEvento() {
 
     EVENTO_ID = data.evento_id;
 
-    actualizarContador();
-    setInterval(actualizarContador, 2000);
 }
 
 async function buscar() {
@@ -190,15 +185,6 @@ async function registrar(id, nombre) {
     actualizarContador();
 }
 
-async function actualizarContador() {
-    if (!EVENTO_ID) return;
-
-    let res = await fetch(`/evento/${EVENTO_ID}/conteo`);
-    let data = await res.json();
-
-    document.getElementById("contador").innerText =
-        "Asistentes: " + data.asistentes;
-}
 
 obtenerEvento();
 </script>
