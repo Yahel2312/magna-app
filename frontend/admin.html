@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Panel de administración — Magna App">
+    <title>Admin — Magna App</title>
+    <link rel="stylesheet" href="/static/css/admin.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+</head>
+<body>
+
+<!-- ════════════════════════════════════════
+     LOGIN OVERLAY
+════════════════════════════════════════ -->
+<div id="login-overlay" class="login-overlay">
+    <div class="login-card">
+        <div class="login-logo">⚡</div>
+        <h1>Magna App</h1>
+        <p class="login-subtitle">Panel de Administración</p>
+
+        <div class="form-group">
+            <input
+                type="text"
+                id="username"
+                placeholder="Usuario"
+                autocomplete="username"
+                aria-label="Nombre de usuario"
+            >
+        </div>
+        <div class="form-group">
+            <input
+                type="password"
+                id="password"
+                placeholder="Contraseña"
+                autocomplete="current-password"
+                aria-label="Contraseña"
+            >
+        </div>
+
+        <button class="btn-login" id="btn-login" onclick="login()">Iniciar sesión</button>
+        <p id="login-error" class="login-error" role="alert"></p>
+    </div>
+</div>
+
+<!-- ════════════════════════════════════════
+     DASHBOARD
+════════════════════════════════════════ -->
+<div id="dashboard" class="dashboard" style="display:none">
+
+    <!-- Header ───────────────────────────── -->
+    <header class="header">
+        <div class="header-logo">⚡ Magna</div>
+        <div class="header-title">Panel de Administración</div>
+        <div class="header-user">
+            <span id="admin-nombre"></span>
+            <button class="btn-logout" onclick="logout()">Cerrar sesión</button>
+        </div>
+    </header>
+
+    <!-- Main ─────────────────────────────── -->
+    <main class="main-content">
+
+        <!-- Sección: resumen del día -->
+        <div class="section-header">
+            <h2>Asistencia de hoy &nbsp;<span id="fecha-evento"></span></h2>
+        </div>
+
+        <!-- Cards de estadísticas -->
+        <div class="stats-grid">
+            <div class="stat-card stat-total">
+                <div class="stat-icon">👥</div>
+                <div class="stat-value" id="stat-total">—</div>
+                <div class="stat-label">Total</div>
+            </div>
+            <div class="stat-card stat-sec">
+                <div class="stat-icon">🎒</div>
+                <div class="stat-value" id="stat-secundarios">—</div>
+                <div class="stat-label">Secundarios</div>
+            </div>
+            <div class="stat-card stat-pre">
+                <div class="stat-icon">📚</div>
+                <div class="stat-value" id="stat-prepos">—</div>
+                <div class="stat-label">Prepos</div>
+            </div>
+            <div class="stat-card stat-uni">
+                <div class="stat-icon">🎓</div>
+                <div class="stat-value" id="stat-universitarios">—</div>
+                <div class="stat-label">Universitarios</div>
+            </div>
+            <div class="stat-card stat-pro">
+                <div class="stat-icon">💼</div>
+                <div class="stat-value" id="stat-profesionistas">—</div>
+                <div class="stat-label">Profesionistas</div>
+            </div>
+        </div>
+
+        <!-- Grid: top rachas + gráfica -->
+        <div class="middle-grid">
+
+            <!-- Top 10 Rachas -->
+            <div class="panel">
+                <h3>🏆 Top Rachas</h3>
+                <div class="table-wrap">
+                    <table aria-label="Top 10 rachas">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Nombre</th>
+                                <th>Grupo</th>
+                                <th>Racha actual</th>
+                                <th>Máxima</th>
+                                <th>Puntos</th>
+                            </tr>
+                        </thead>
+                        <tbody id="top-rachas-body">
+                            <tr><td colspan="6" class="loading">Cargando...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Gráfica de historial -->
+            <div class="panel">
+                <h3>📊 Asistencia por semana</h3>
+                <canvas id="historial-chart" aria-label="Gráfica de asistencia histórica"></canvas>
+            </div>
+
+        </div>
+
+        <!-- Historial tabla + botón Excel -->
+        <div class="panel">
+            <div class="panel-header">
+                <h3>📅 Historial de semanas anteriores</h3>
+                <button class="btn-excel" onclick="descargarExcel()" id="btn-excel">
+                    📥 Descargar Excel del día
+                </button>
+            </div>
+            <div class="table-wrap">
+                <table aria-label="Historial de asistencia">
+                    <thead>
+                        <tr>
+                            <th>Fecha</th>
+                            <th>Total</th>
+                            <th style="color:#93c5fd">Secundarios</th>
+                            <th style="color:#d8b4fe">Prepos</th>
+                            <th style="color:#5eead4">Universitarios</th>
+                            <th style="color:#fdba74">Profesionistas</th>
+                        </tr>
+                    </thead>
+                    <tbody id="historial-body">
+                        <tr><td colspan="6" class="loading">Cargando...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Gestión de administradores -->
+        <div class="panel" id="panel-admins">
+            <div class="panel-header">
+                <h3>🛡️ Administradores</h3>
+                <button class="btn-new-admin" id="btn-nuevo-admin" onclick="abrirModalAdmin()">
+                    ＋ Nuevo admin
+                </button>
+            </div>
+            <div class="table-wrap">
+                <table aria-label="Lista de administradores">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Nombre</th>
+                            <th>Usuario</th>
+                            <th>Estado</th>
+                            <th>Acción</th>
+                        </tr>
+                    </thead>
+                    <tbody id="admins-body">
+                        <tr><td colspan="5" class="loading">Cargando...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </main>
+</div>
+
+<!-- ════════════════════════════════════════
+     MODAL — NUEVO ADMIN
+════════════════════════════════════════ -->
+<div id="modal-admin" class="modal-backdrop" style="display:none" role="dialog" aria-modal="true" aria-labelledby="modal-admin-title">
+    <div class="modal-card">
+        <div class="modal-header">
+            <h2 id="modal-admin-title">➕ Nuevo Administrador</h2>
+            <button class="modal-close" onclick="cerrarModalAdmin()" aria-label="Cerrar">✕</button>
+        </div>
+
+        <div class="form-group">
+            <label class="form-label" for="new-admin-nombre">Nombre completo</label>
+            <input type="text" id="new-admin-nombre" placeholder="Ej: Juan Pérez" autocomplete="off">
+        </div>
+        <div class="form-group">
+            <label class="form-label" for="new-admin-username">Usuario</label>
+            <input type="text" id="new-admin-username" placeholder="Ej: juan.perez" autocomplete="off">
+        </div>
+        <div class="form-group">
+            <label class="form-label" for="new-admin-password">Contraseña</label>
+            <input type="password" id="new-admin-password" placeholder="Mínimo 6 caracteres" autocomplete="new-password">
+        </div>
+
+        <p id="modal-admin-error" class="modal-error" role="alert"></p>
+
+        <div class="modal-actions">
+            <button class="btn-modal-cancel" onclick="cerrarModalAdmin()">Cancelar</button>
+            <button class="btn-modal-confirm" id="btn-crear-admin" onclick="crearAdmin()">Crear admin</button>
+        </div>
+    </div>
+</div>
+
+<script src="/static/js/admin.js"></script>
+</body>
+</html>

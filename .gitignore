@@ -1,0 +1,41 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+
+# Entornos virtuales
+venv/
+env/
+.venv/
+ENV/
+
+# Base de datos local
+*.db
+*.sqlite3
+
+# Archivos Excel generados
+asistencia_evento_*.xlsx
+asistencias_*.xlsx
+asistentes_*.xlsx
+test_*.xlsx
+
+# Variables de entorno (contiene secretos)
+.env
+
+# pytest
+.pytest_cache/
+.coverage
+htmlcov/
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Build
+dist/
+build/
+*.egg-info/
