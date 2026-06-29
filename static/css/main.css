@@ -1,0 +1,227 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap');
+
+*, *::before, *::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+:root {
+    --color-bg:       #0b2f35;
+    --color-accent:   #01ff0e;
+    --color-glass:    rgba(255, 255, 255, 0.12);
+    --color-glass-hover: rgba(255, 255, 255, 0.22);
+    --color-text:     #ffffff;
+    --color-muted:    rgba(255,255,255,0.6);
+    --radius:         12px;
+    --shadow:         0 8px 32px rgba(0,0,0,0.35);
+    --transition:     0.2s ease;
+}
+
+body {
+    font-family: 'Inter', Arial, sans-serif;
+    background: var(--color-bg);
+    color: var(--color-text);
+    min-height: 100vh;
+    position: relative;
+    overflow-x: hidden;
+}
+
+/* ── Hero images ────────────────────────── */
+.hero-pc,
+.hero-mobile {
+    width: 100%;
+}
+
+.hero-pc img,
+.hero-mobile img {
+    width: 100%;
+    display: block;
+}
+
+.hero-mobile {
+    display: none;
+}
+
+/* ── Contenedor principal ───────────────── */
+.contenedor {
+    position: absolute;
+    top: 38%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 50%;
+    max-width: 620px;
+    z-index: 10;
+}
+
+/* ── Buscador ───────────────────────────── */
+.buscador-wrap {
+    position: relative;
+}
+
+input[type="text"] {
+    font-family: 'Inter', Arial, sans-serif;
+    font-size: 20px;
+    font-weight: 700;
+    text-align: center;
+    padding: 14px 16px;
+    width: 100%;
+    border-radius: var(--radius);
+    border: 2px solid transparent;
+    background: rgba(255, 255, 255, 0.70);
+    color: #111;
+    outline: none;
+    transition: border var(--transition), box-shadow var(--transition);
+}
+
+input[type="text"]:focus {
+    border-color: var(--color-accent);
+    box-shadow: 0 0 0 3px rgba(1, 255, 14, 0.2);
+}
+
+input[type="text"]::placeholder {
+    color: #555;
+    font-weight: 600;
+}
+
+/* ── Resultados de búsqueda ─────────────── */
+#resultados {
+    max-height: 260px;
+    overflow-y: auto;
+    margin-top: 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+#resultados::-webkit-scrollbar {
+    width: 6px;
+}
+#resultados::-webkit-scrollbar-track { background: transparent; }
+#resultados::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.3); border-radius: 3px; }
+
+#resultados button {
+    font-family: 'Inter', Arial, sans-serif;
+    font-size: 17px;
+    font-weight: 600;
+    padding: 13px;
+    width: 100%;
+    border-radius: var(--radius);
+    border: 1px solid rgba(255,255,255,0.2);
+    background: var(--color-glass);
+    color: var(--color-text);
+    cursor: pointer;
+    backdrop-filter: blur(8px);
+    transition: background var(--transition), transform var(--transition), border-color var(--transition);
+    text-align: left;
+    padding-left: 18px;
+    touch-action: manipulation; /* Elimina el delay de 300ms en móvil */
+    -webkit-tap-highlight-color: transparent; /* Sin flash gris al tocar en iOS */
+}
+
+#resultados button:hover {
+    background: var(--color-glass-hover);
+    border-color: var(--color-accent);
+    transform: translateY(-1px);
+}
+
+.no-results {
+    text-align: center;
+    color: var(--color-muted);
+    font-size: 15px;
+    padding: 10px;
+}
+
+/* ── Mensaje de confirmación ────────────── */
+#mensaje {
+    font-size: 19px;
+    margin-top: 18px;
+    font-weight: 700;
+    min-height: 28px;
+    text-align: center;
+    color: var(--color-accent);
+    text-shadow: 0 0 12px rgba(1, 255, 14, 0.4);
+    transition: opacity 0.4s;
+}
+
+/* ── Contador de asistentes ─────────────── */
+#contador {
+    font-size: 14px;
+    font-weight: 600;
+    text-align: center;
+    margin-top: 10px;
+    color: var(--color-muted);
+    letter-spacing: 0.5px;
+}
+
+/* ── Toast flotante de confirmación ─────── */
+#toast-asistencia {
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%) translateY(-120px);
+    z-index: 9999;
+    background: rgba(9, 30, 36, 0.95);
+    border: 1px solid rgba(255,255,255,0.15);
+    border-radius: 14px;
+    padding: 16px 28px;
+    font-size: 17px;
+    font-weight: 700;
+    font-family: 'Inter', Arial, sans-serif;
+    text-align: center;
+    backdrop-filter: blur(16px);
+    box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+    max-width: 90vw;
+    width: max-content;
+    transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.3s ease;
+    pointer-events: none;
+}
+
+.toast-visible {
+    transform: translateX(-50%) translateY(0) !important;
+    opacity: 1 !important;
+}
+
+.toast-hidden {
+    transform: translateX(-50%) translateY(-120px) !important;
+    opacity: 0 !important;
+}
+
+.toast-ok  { color: #01ff0e; border-color: rgba(1,255,14,0.3); }
+.toast-err { color: #ff5370; border-color: rgba(255,83,112,0.3); }
+
+
+/* ── Responsive mobile ──────────────────── */
+@media (max-width: 1024px) {
+    .hero-pc  { display: none; }
+    .hero-mobile { display: block; }
+
+    .contenedor {
+        top: 24%;
+        width: 72%;
+        max-width: 380px;
+    }
+
+    #resultados {
+        max-height: 200px;
+    }
+
+    input[type="text"] {
+        font-size: 17px;
+    }
+
+    #resultados button {
+        font-size: 15px;
+        padding: 11px 14px;
+    }
+
+    #mensaje {
+        font-size: 16px;
+    }
+}
+
+@media (max-width: 480px) {
+    .contenedor {
+        width: 88%;
+    }
+}

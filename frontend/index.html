@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="description" content="Registro de asistencia semanal — Grupo Juvenil Magna">
+    <title>Asistencia — Magna</title>
+    <link rel="stylesheet" href="/static/css/main.css">
+</head>
+<body>
+
+    <!-- Banner horizontal (escritorio) -->
+    <div class="hero-pc">
+        <img src="/static/portada_horizontal.png" alt="Bienvenida al grupo Magna">
+    </div>
+
+    <!-- Banner vertical (móvil) -->
+    <div class="hero-mobile">
+        <img src="/static/portada_vertical.png" alt="Bienvenida al grupo Magna">
+    </div>
+
+    <!-- Buscador de asistencia -->
+    <div class="contenedor">
+        <div class="buscador-wrap">
+            <input
+                type="text"
+                id="buscador"
+                placeholder="Escribe tu nombre..."
+                autocomplete="on"
+                aria-label="Buscar nombre"
+            >
+        </div>
+
+        <div id="resultados" role="listbox" aria-label="Resultados de búsqueda"></div>
+
+        <p id="mensaje" aria-live="polite"></p>
+        <p id="contador"></p>
+    </div>
+
+    <script src="/static/js/main.js?v=4"></script>
+</body>
+</html>
