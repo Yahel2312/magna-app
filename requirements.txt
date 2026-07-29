@@ -1,13 +1,10 @@
 fastapi
 uvicorn
 sqlalchemy
-pydantic
+psycopg2-binary
 openpyxl
+python-multipart
+python-dotenv
 python-jose[cryptography]
 passlib[bcrypt]
-bcrypt>=3.1.0,<4.0        # passlib 1.7.4 incompatible con bcrypt>=4.0
-python-dotenv
-pytest
-httpx
- PostgreSQL (opcional, solo si no usas SQLite):
-psycopg2-binary
+pandas
