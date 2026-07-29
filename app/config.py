@@ -15,3 +15,5 @@ ACCESS_TOKEN_EXPIRE_HOURS: int = 8
 ADMIN_USER_DEFAULT: str = os.getenv("ADMIN_USER", "admin")
 ADMIN_PASSWORD_DEFAULT: str = os.getenv("ADMIN_PASSWORD", "magna2024")
 ADMIN_NOMBRE_DEFAULT: str = os.getenv("ADMIN_NOMBRE", "Administrador")
+
+
