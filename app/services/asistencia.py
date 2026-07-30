@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timedelta, time 
 from sqlalchemy.orm import Session
 from fastapi import HTTPException, status
 
@@ -8,22 +8,44 @@ from app.schemas import AsistenciaResponse
 
 def obtener_o_crear_evento(db: Session) -> models.Evento:
     """
-    Busca el evento del día actual. Si no existe, crea uno nuevo.
-    Garantiza un único evento por día.
+    Busca el evento semanal correspondiente al domingo.
+    Si no existe, crea uno nuevo.
+
+    Así se evita crear un evento diferente cada día.
     """
+
     hoy = datetime.now().date()
-    evento = db.query(models.Evento).filter(
-        models.Evento.fecha >= datetime.combine(hoy, datetime.min.time()),
-        models.Evento.fecha <= datetime.combine(hoy, datetime.max.time()),
-    ).first()
+
+    # weekday():
+    # lunes = 0
+    # domingo = 6
+    dias_hasta_domingo = (6 - hoy.weekday()) % 7
+    domingo = hoy + timedelta(days=dias_hasta_domingo)
+
+    inicio_domingo = datetime.combine(domingo, time.min)
+    fin_domingo = datetime.combine(domingo, time.max)
+
+    evento = (
+        db.query(models.Evento)
+        .filter(
+            models.Evento.fecha >= inicio_domingo,
+            models.Evento.fecha <= fin_domingo,
+        )
+        .first()
+    )
 
     if evento:
         return evento
 
-    nuevo = models.Evento(fecha=datetime.now(), activo=True)
+    nuevo = models.Evento(
+        fecha=datetime.combine(domingo, time(hour=12)),
+        activo=True,
+    )
+
     db.add(nuevo)
     db.commit()
     db.refresh(nuevo)
+
     return nuevo
 
 
