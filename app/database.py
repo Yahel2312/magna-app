@@ -3,6 +3,7 @@ from sqlalchemy.orm import declarative_base, sessionmaker
 
 from app.config import DATABASE_URL
 
+print("DATABASE_URL =", DATABASE_URL)
 
 connect_args = (
     {"check_same_thread": False}

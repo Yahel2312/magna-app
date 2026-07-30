@@ -114,8 +114,14 @@ def registrar_asistencia(joven_id: int, evento_id: int, db: Session) -> Asistenc
     # Actualizar racha máxima (bug corregido: ahora siempre se actualiza)
     es_nueva_racha_max = joven.racha_actual > joven.racha_maxima
     joven.racha_maxima = max(joven.racha_maxima, joven.racha_actual)
+    print("=" * 50)
+    print("GUARDANDO ASISTENCIA")
+    print("Joven:", joven.nombre)
+    print("Evento:", evento.id)
+    print("=" * 50)
 
     db.commit()
+    print("Asistencia guardada correctamente")
 
     return AsistenciaResponse(
         mensaje="Asistencia registrada",
