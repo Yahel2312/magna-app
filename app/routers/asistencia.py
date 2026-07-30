@@ -50,3 +50,19 @@ def conteo_evento(evento_id: int, db: Session = Depends(get_db)):
         .count()
     )
     return {"asistentes": total}
+@router.post("/asistencia")
+def registrar(
+    joven_id: int,
+    evento_id: int,
+    db: Session = Depends(get_db),
+):
+    print(
+        f"REGISTRO RECIBIDO: joven_id={joven_id}, "
+        f"evento_id={evento_id}"
+    )
+
+    return registrar_asistencia(
+        joven_id=joven_id,
+        evento_id=evento_id,
+        db=db,
+    )
