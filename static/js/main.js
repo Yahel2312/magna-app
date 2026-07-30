@@ -80,24 +80,44 @@ async function registrar(id, nombre) {
         return;
     }
 
-    try {
-        var res = await fetch("/asistencia?joven_id=" + id + "&evento_id=" + EVENTO_ID, {
-            method: "POST",
-        });
+   try {
+    console.log("Intentando registrar:", {
+        joven_id: id,
+        nombre: nombre,
+        evento_id: EVENTO_ID
+    });
 
-        if (!res.ok) {
-            mostrarToast("❌ Error al registrar. Intenta de nuevo.", false);
-            return;
+    const res = await fetch(
+        "/asistencia?joven_id=" + id + "&evento_id=" + EVENTO_ID,
+        {
+            method: "POST"
         }
+    );
 
-        var data = await res.json();
-        mostrarToast(_construirMensaje(nombre, data), true);
-        actualizarContador();
+    const texto = await res.text();
 
-    } catch (e) {
-        mostrarToast("❌ Error de conexión.", false);
-        console.error(e);
+    console.log("Estado de la respuesta:", res.status);
+    console.log("Respuesta del servidor:", texto);
+
+    if (!res.ok) {
+        mostrarToast(
+            "❌ Error " + res.status + ": " + texto,
+            false
+        );
+        return;
     }
+
+    const data = JSON.parse(texto);
+
+    console.log("Asistencia registrada:", data);
+
+    mostrarToast("✅ Asistencia registrada para " + nombre, true);
+    actualizarContador();
+
+} catch (e) {
+    console.error("Error completo al registrar:", e);
+    mostrarToast("❌ Error de conexión: " + e.message, false);
+}
 }
 
 function _construirMensaje(nombre, data) {
