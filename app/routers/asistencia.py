@@ -8,14 +8,22 @@ import app.models as models
 
 router = APIRouter(tags=["Asistencia"])
 
-
 @router.post("/asistencia", response_model=AsistenciaResponse, summary="Registrar asistencia")
-def registrar(joven_id: int, evento_id: int, db: Session = Depends(get_db)):
+def registrar(
+    joven_id: int,
+    db: Session = Depends(get_db),
+):
     """
-    Registra la asistencia de un joven a un evento.
-    Calcula automáticamente puntos y rachas (incluyendo racha_maxima).
+    Registra la asistencia en el evento activo del día.
+    El evento se obtiene automáticamente para evitar IDs incorrectos.
     """
-    return registrar_asistencia(joven_id, evento_id, db)
+    evento = obtener_o_crear_evento(db)
+
+    return registrar_asistencia(
+        joven_id=joven_id,
+        evento_id=evento.id,
+        db=db,
+    )
 
 
 @router.get("/evento/activo", response_model=EventoOut, summary="Obtener evento del día")
