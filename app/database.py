@@ -15,7 +15,12 @@ engine = create_engine(
     DATABASE_URL,
     connect_args=connect_args
 )
+print("DATABASE_URL =", DATABASE_URL)
 
+if DATABASE_URL.startswith("sqlite:///"):
+    import os
+    ruta = DATABASE_URL.replace("sqlite:///", "")
+    print("Base SQLite absoluta:", os.path.abspath(ruta))
 SessionLocal = sessionmaker(
     autocommit=False,
     autoflush=False,

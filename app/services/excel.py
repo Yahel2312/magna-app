@@ -42,16 +42,25 @@ def generar_excel_evento(evento_id: int, db: Session, base_dir: str) -> FileResp
     if not evento:
         raise HTTPException(status_code=404, detail="Evento no encontrado")
 
-    filas = (
-        db.query(models.Asistencia, models.Joven)
-        .join(
-            models.Joven,
-            models.Asistencia.joven_id == models.Joven.id
-        )
-        .filter(models.Asistencia.evento_id == evento_id)
-        .order_by(models.Joven.grupo, models.Joven.nombre)
-        .all()
+    print("Evento recibido:", evento_id)
+
+    print("Asistencias para ese evento:")
+    for a in db.query(models.Asistencia).filter(models.Asistencia.evento_id == evento_id):
+     print(
+        a.id,
+        a.evento_id,
+        a.joven_id
     )
+
+    filas = (
+    db.query(models.Asistencia, models.Joven)
+    .join(models.Joven, models.Asistencia.joven_id == models.Joven.id)
+    .filter(models.Asistencia.evento_id == evento_id)
+    .order_by(models.Joven.grupo, models.Joven.nombre)
+    .all()
+     )
+
+    print("JOIN devuelve:", len(filas))
 
     # ==========================================================
     # DEBUG
@@ -170,6 +179,10 @@ def generar_excel_evento(evento_id: int, db: Session, base_dir: str) -> FileResp
     ruta = os.path.join(base_dir, nombre_archivo)
 
     wb.save(ruta)
+    print("Registros exportados:", len(registros))
+
+    for r in registros:
+     print(r)
 
     return FileResponse(
         ruta,

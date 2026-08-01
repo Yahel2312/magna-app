@@ -101,12 +101,15 @@ def crear_evento(
 #  Exportar Excel
 # ─────────────────────────────────────────────
 
-@router.get("/excel/activo", summary="Exportar Excel del evento de hoy")
+@router.get("/excel/activo")
 def excel_activo(
     db: Session = Depends(get_db),
     admin: models.Admin = Depends(get_current_admin),
 ):
     evento = obtener_o_crear_evento(db)
+
+    print("EXPORTANDO EVENTO:", evento.id)
+
     return generar_excel_evento(evento.id, db, BASE_DIR)
 
 
