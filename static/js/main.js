@@ -88,11 +88,11 @@ async function registrar(id, nombre) {
     });
 
     const res = await fetch(
-        "/asistencia?joven_id=" + id + "&evento_id=" + EVENTO_ID,
-        {
-            method: "POST"
-        }
-    );
+    "/asistencia?joven_id=" + id,
+    {
+        method: "POST"
+    }
+);
 
     const texto = await res.text();
 
