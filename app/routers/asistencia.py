@@ -7,9 +7,21 @@ from app.services.asistencia import (
     registrar_asistencia,
     obtener_o_crear_evento,
 )
+from datetime import datetime, timedelta
+from zoneinfo import ZoneInfo
 import app.models as models
 
+ZONA_HORARIA = ZoneInfo("America/Mexico_City")
 
+
+def obtener_proximo_domingo():
+    ahora = datetime.now(ZONA_HORARIA)
+    dias_hasta_domingo = (6 - ahora.weekday()) % 7
+
+    if dias_hasta_domingo == 0:
+        return ahora.date()
+
+    return (ahora + timedelta(days=dias_hasta_domingo)).date()
 router = APIRouter(tags=["Asistencia"])
 
 
@@ -55,27 +67,53 @@ def registrar(
 @router.get(
     "/evento/activo",
     response_model=EventoOut,
-    summary="Obtener evento del día",
+    summary="Obtener evento actual o próximo",
 )
-def evento_activo(
-    db: Session = Depends(get_db),
-):
-    """Busca o crea el evento del día actual y devuelve su información."""
+def evento_activo(db: Session = Depends(get_db)):
+    ahora = datetime.now(ZONA_HORARIA)
+    hoy = ahora.date()
 
-    evento = obtener_o_crear_evento(db)
+    # ==========================================================
+    # DOMINGO = EVENTO REAL
+    # ==========================================================
+    if hoy.weekday() == 6:
+        evento = obtener_o_crear_evento(db)
 
-    total = (
-        db.query(models.Asistencia)
-        .filter(models.Asistencia.evento_id == evento.id)
-        .count()
-    )
+        total = (
+            db.query(models.Asistencia)
+            .filter(
+                models.Asistencia.evento_id == evento.id
+            )
+            .count()
+        )
+
+        return EventoOut(
+            evento_id=evento.id,
+            fecha=str(hoy),
+            total_asistentes=total,
+        )
+
+    # ==========================================================
+    # LUNES-SÁBADO = PRÓXIMO DOMINGO
+    # ==========================================================
+    proximo_domingo = obtener_proximo_domingo()
 
     return EventoOut(
-        evento_id=evento.id,
-        fecha=str(evento.fecha.date()),
-        total_asistentes=total,
+        evento_id=0,
+        fecha=str(proximo_domingo),
+        total_asistentes=0,
     )
 
+    # ==========================================================
+    # LUNES-SÁBADO = PRÓXIMO DOMINGO
+    # ==========================================================
+    proximo_domingo = obtener_proximo_domingo()
+
+    return EventoOut(
+        evento_id=0,
+        fecha=str(proximo_domingo),
+        total_asistentes=0,
+    )
 
 # ─────────────────────────────────────────────
 # Conteo de asistentes

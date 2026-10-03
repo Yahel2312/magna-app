@@ -1,5 +1,4 @@
 // ── Estado global ──────────────────────────────────────
-let EVENTO_ID     = null;
 let debounceTimer = null;
 
 // ── Registrar listener de búsqueda INMEDIATAMENTE ─────
@@ -18,16 +17,23 @@ document.getElementById("buscador").addEventListener("input", function () {
 async function obtenerEvento() {
     try {
         const res = await fetch("/evento/activo");
-        if (!res.ok) throw new Error("HTTP " + res.status);
+
+        if (!res.ok) {
+            throw new Error("HTTP " + res.status);
+        }
+
         const data = await res.json();
-        EVENTO_ID = data.evento_id;
+
+        console.log("Evento actual/próximo:", data);
+
         actualizarContador();
+
         setInterval(actualizarContador, 10_000);
+
     } catch (e) {
         console.error("Error al obtener evento:", e);
     }
 }
-
 // ── Búsqueda ───────────────────────────────────────────
 async function _ejecutarBusqueda() {
     var texto      = document.getElementById("buscador").value.trim();
@@ -75,24 +81,18 @@ async function _ejecutarBusqueda() {
 
 // ── Registro de asistencia ─────────────────────────────
 async function registrar(id, nombre) {
-    if (!EVENTO_ID) {
-        mostrarToast("⏳ Espera un momento e intenta de nuevo...", false);
-        return;
-    }
+    try {
+        console.log("Intentando registrar:", {
+            joven_id: id,
+            nombre: nombre
+        });
 
-   try {
-    console.log("Intentando registrar:", {
-        joven_id: id,
-        nombre: nombre,
-        evento_id: EVENTO_ID
-    });
-
-    const res = await fetch(
-    "/asistencia?joven_id=" + id,
-    {
-        method: "POST"
-    }
-);
+        const res = await fetch(
+            "/asistencia?joven_id=" + id,
+            {
+                method: "POST"
+            }
+        );
 
     const texto = await res.text();
 
@@ -129,12 +129,22 @@ function _construirMensaje(nombre, data) {
 
 // ── Contador de asistentes ─────────────────────────────
 async function actualizarContador() {
-    if (!EVENTO_ID) return;
     try {
-        var res  = await fetch("/evento/" + EVENTO_ID + "/conteo");
+        var res = await fetch("/evento/activo");
+
+        if (!res.ok) {
+            throw new Error("HTTP " + res.status);
+        }
+
         var data = await res.json();
-        var el   = document.getElementById("contador");
-        if (el) el.textContent = "👥 Asistentes hoy: " + data.asistentes;
+
+        var el = document.getElementById("contador");
+
+        if (el) {
+            el.textContent =
+                "👥 Asistentes: " + data.total_asistentes;
+        }
+
     } catch (e) {
         console.error("Error al actualizar contador:", e);
     }
