@@ -4,7 +4,6 @@ from typing import List
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
-
 from app.auth import get_current_admin, hash_password
 from app.database import get_db
 from app.schemas import (
@@ -96,6 +95,60 @@ def crear_evento(
     db.refresh(nuevo)
     return {"mensaje": "Evento creado", "evento_id": nuevo.id}
 
+# ─────────────────────────────────────────────
+#  Reinicio de datos
+# ─────────────────────────────────────────────
+
+@router.post("/reset-datos", summary="Reiniciar datos de prueba")
+def reset_datos(
+    db: Session = Depends(get_db),
+    admin: models.Admin = Depends(get_current_admin),
+):
+    """
+    Elimina eventos y asistencias y reinicia puntos y rachas.
+
+    Se conservan:
+    - Jóvenes
+    - Nombres
+    - Grupos
+    - Administradores
+    """
+
+    try:
+        # 1. Eliminar asistencias
+        asistencias_eliminadas = db.query(models.Asistencia).delete(
+            synchronize_session=False
+        )
+
+        # 2. Eliminar eventos
+        eventos_eliminados = db.query(models.Evento).delete(
+            synchronize_session=False
+        )
+
+        # 3. Reiniciar puntos y rachas
+        jovenes = db.query(models.Joven).all()
+
+        for joven in jovenes:
+            joven.puntos_totales = 0
+            joven.puntos_racha = 0
+            joven.racha_actual = 0
+            joven.racha_maxima = 0
+
+        db.commit()
+
+        return {
+            "mensaje": "Datos reiniciados correctamente",
+            "asistencias_eliminadas": asistencias_eliminadas,
+            "eventos_eliminados": eventos_eliminados,
+            "jovenes_reiniciados": len(jovenes),
+        }
+
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(
+            status_code=500,
+            detail=f"No se pudo completar el reinicio: {str(e)}"
+        )
 
 # ─────────────────────────────────────────────
 #  Exportar Excel

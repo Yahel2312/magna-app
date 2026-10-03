@@ -57,7 +57,26 @@
             <button class="btn-logout" onclick="logout()">Cerrar sesión</button>
         </div>
     </header>
+ 
+            <!-- Reinicio de datos -->
+        <div class="panel reset-panel">
+            <div class="panel-header">
+                <div>
+                    <h3>🧹 Mantenimiento</h3>
+                    <p style="color:var(--muted); margin:6px 0 0;">
+                        Reinicia los eventos, asistencias, puntos y rachas.
+                    </p>
+                </div>
 
+                <button
+                    class="btn-reset"
+                    id="btn-reset-datos"
+                    onclick="resetearDatos()"
+                >
+                    🗑️ Reiniciar datos
+                </button>
+            </div>
+        </div>
     <!-- Main ─────────────────────────────── -->
     <main class="main-content">
 

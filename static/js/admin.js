@@ -384,11 +384,82 @@ async function desactivarAdmin(adminId) {
         }
 
         // Recarga la lista
-        const listRes = await fetch("/admin/admins", { headers: _authHeaders() });
-        const admins  = await listRes.json();
+        const listRes = await fetch("/admin/admins", {
+            headers: _authHeaders()
+        });
+
+        const admins = await listRes.json();
         renderAdmins(admins);
+
     } catch (e) {
         alert("Error de conexión.");
         console.error(e);
     }
 }
+
+
+// ── Reinicio de datos ───────────────────────────────────
+
+async function resetearDatos() {
+
+    const confirmar = confirm(
+        "⚠️ ATENCIÓN\n\n" +
+        "Esta acción eliminará TODOS los eventos y asistencias " +
+        "y reiniciará los puntos y las rachas de todos los jóvenes.\n\n" +
+        "Los jóvenes y los administradores NO serán eliminados.\n\n" +
+        "¿Estás seguro de que quieres continuar?"
+    );
+
+    if (!confirmar) {
+        return;
+    }
+
+    const confirmarFinal = confirm(
+        "🚨 ÚLTIMA CONFIRMACIÓN\n\n" +
+        "Se eliminarán los datos de prueba de la base de datos.\n\n" +
+        "Esta acción no se puede deshacer.\n\n" +
+        "¿CONFIRMAR REINICIO?"
+    );
+
+    if (!confirmarFinal) {
+        return;
+    }
+
+    const btn = document.getElementById("btn-reset-datos");
+
+    btn.disabled = true;
+    btn.textContent = "⏳ Reiniciando...";
+
+    try {
+        const res = await fetch("/admin/reset-datos", {
+            method: "POST",
+            headers: _authHeaders(),
+        });
+
+        const data = await res.json();
+
+        if (!res.ok) {
+            alert(data.detail ?? "No se pudo completar el reinicio.");
+            return;
+        }
+
+        alert(
+            "✅ Datos reiniciados correctamente.\n\n" +
+            "Eventos eliminados: " + data.eventos_eliminados + "\n" +
+            "Asistencias eliminadas: " + data.asistencias_eliminadas + "\n" +
+            "Jóvenes reiniciados: " + data.jovenes_reiniciados
+        );
+
+        await cargarDatos();
+
+    } catch (e) {
+        console.error("Error al reiniciar datos:", e);
+        alert("❌ Error de conexión al reiniciar los datos.");
+
+    } finally {
+        btn.disabled = false;
+        btn.textContent = "🗑️ Reiniciar datos";
+    }
+}
+
+
