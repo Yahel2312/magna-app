@@ -8,7 +8,7 @@ document.getElementById("buscador").addEventListener("input", function () {
     debounceTimer = setTimeout(_ejecutarBusqueda, 280);
 });
 
-// ── Inicialización asíncrona (evento + contador) ───────
+// ── Inicialización asíncrona ───────────────────────────
 (async function init() {
     await obtenerEvento();
 })();
@@ -25,10 +25,6 @@ async function obtenerEvento() {
         const data = await res.json();
 
         console.log("Evento actual/próximo:", data);
-
-        actualizarContador();
-
-        setInterval(actualizarContador, 10_000);
 
     } catch (e) {
         console.error("Error al obtener evento:", e);
@@ -112,7 +108,7 @@ async function registrar(id, nombre) {
     console.log("Asistencia registrada:", data);
 
     mostrarToast("✅ Asistencia registrada para " + nombre, true);
-    actualizarContador();
+
 
 } catch (e) {
     console.error("Error completo al registrar:", e);
@@ -127,28 +123,6 @@ function _construirMensaje(nombre, data) {
     return "✔ " + nombre + " — ¡Bienvenido!";
 }
 
-// ── Contador de asistentes ─────────────────────────────
-async function actualizarContador() {
-    try {
-        var res = await fetch("/evento/activo");
-
-        if (!res.ok) {
-            throw new Error("HTTP " + res.status);
-        }
-
-        var data = await res.json();
-
-        var el = document.getElementById("contador");
-
-        if (el) {
-            el.textContent =
-                "👥 Asistentes: " + data.total_asistentes;
-        }
-
-    } catch (e) {
-        console.error("Error al actualizar contador:", e);
-    }
-}
 
 // ── Toast de confirmación ──────────────────────────────
 var toastTimer = null;

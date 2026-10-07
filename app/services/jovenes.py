@@ -1,4 +1,5 @@
 import os
+import unicodedata
 from sqlalchemy.orm import Session
 from openpyxl import load_workbook
 
@@ -7,14 +8,38 @@ import app.models as models
 GRUPOS = ["Secundarios", "Prepos", "Universitarios", "Profesionistas"]
 
 
-def buscar_jovenes(nombre: str, db: Session) -> list[models.Joven]:
-    """Búsqueda case-insensitive de jóvenes por nombre."""
-    return (
-        db.query(models.Joven)
-        .filter(models.Joven.nombre.ilike(f"%{nombre}%"))
-        .order_by(models.Joven.nombre)
-        .all()
+def _normalizar_texto(texto: str) -> str:
+    """
+    Normaliza texto para búsquedas:
+    - Ignora mayúsculas/minúsculas.
+    - Ignora acentos.
+    """
+    texto = unicodedata.normalize("NFD", texto)
+    texto = "".join(
+        caracter
+        for caracter in texto
+        if unicodedata.category(caracter) != "Mn"
     )
+    return texto.casefold()
+
+
+def buscar_jovenes(nombre: str, db: Session) -> list[models.Joven]:
+    """
+    Búsqueda de jóvenes sin importar mayúsculas/minúsculas ni acentos.
+    El nombre original se conserva intacto.
+    """
+    termino = _normalizar_texto(nombre.strip())
+
+    if not termino:
+        return []
+
+    jovenes = db.query(models.Joven).order_by(models.Joven.nombre).all()
+
+    return [
+        joven
+        for joven in jovenes
+        if termino in _normalizar_texto(joven.nombre)
+    ]
 
 
 def obtener_estadisticas_por_grupo(evento_id: int, db: Session) -> dict[str, int]:
