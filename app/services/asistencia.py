@@ -7,6 +7,9 @@ from app.schemas import AsistenciaResponse
 
 ZONA_HORARIA = ZoneInfo("America/Mexico_City")
 
+HORA_INICIO = time(18, 0)
+HORA_FIN = time(19, 30)
+
 def obtener_o_crear_evento(db):
     ahora = datetime.now(ZONA_HORARIA)
     hoy = ahora.date()
@@ -137,6 +140,26 @@ def registrar_asistencia(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Evento no encontrado"
         )
+        # ==========================================================
+    # HORARIO DEL EVENTO REAL
+    # ==========================================================
+
+    if evento.activo:
+        ahora = datetime.now(ZONA_HORARIA)
+
+        if ahora.weekday() != 6:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="El registro de asistencia solo está disponible los domingos."
+            )
+
+        hora_actual = ahora.time()
+
+        if not (HORA_INICIO <= hora_actual < HORA_FIN):
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="El registro de asistencia está disponible de 6:00 PM a 7:30 PM."
+            )
 
     # ==========================================================
     # VERIFICAR DUPLICADO
