@@ -151,15 +151,34 @@ function renderHistorial(historial) {
         return;
     }
 
-    tbody.innerHTML = historial.map(s => `
-        <tr>
-            <td>${s.fecha}</td>
-            <td><strong>${s.total}</strong></td>
-            <td style="color:#93c5fd">${s.por_grupo.Secundarios    ?? 0}</td>
-            <td style="color:#d8b4fe">${s.por_grupo.Prepos         ?? 0}</td>
-            <td style="color:#5eead4">${s.por_grupo.Universitarios ?? 0}</td>
-            <td style="color:#fdba74">${s.por_grupo.Profesionistas ?? 0}</td>
-        </tr>`).join("");
+    
+tbody.innerHTML = historial.map(s => `
+    <tr>
+        <td>${s.fecha}</td>
+        <td><strong>${s.total}</strong></td>
+        <td style="color:#93c5fd">${s.por_grupo.Secundarios ?? 0}</td>
+        <td style="color:#d8b4fe">${s.por_grupo.Prepos ?? 0}</td>
+        <td style="color:#5eead4">${s.por_grupo.Universitarios ?? 0}</td>
+        <td style="color:#fdba74">${s.por_grupo.Profesionistas ?? 0}</td>
+        <td>
+            <button
+                class="btn-excel"
+                onclick="descargarExcelEvento(${s.evento_id}, '${s.fecha}')"
+            >
+                📥 Descargar
+            </button>
+        </td>
+        <td>
+            <button
+                class="btn-eliminar-evento"
+                onclick="eliminarEvento(${s.evento_id}, '${s.fecha}')"
+            >
+                🗑️ Eliminar
+            </button>
+        </td>
+    </tr>
+`).join("");
+
 
     // Chart
     const ctx     = document.getElementById("historial-chart").getContext("2d");
@@ -224,27 +243,72 @@ function renderHistorial(historial) {
 }
 
 // ── Descarga de Excel ─────────────────────────────────
-async function descargarExcel() {
+
+async function descargarExcelEvento(eventoId, fecha) {
     try {
-        const res = await fetch("/admin/excel/activo", { headers: _authHeaders() });
+        const res = await fetch(
+            `/admin/excel/evento/${eventoId}`,
+            { headers: _authHeaders() }
+        );
+
         if (!res.ok) {
-            alert("Error al generar el Excel. Intenta de nuevo.");
+            const data = await res.json().catch(() => ({}));
+            alert(data.detail ?? "Error al descargar el Excel.");
             return;
         }
-        const blob     = await res.blob();
-        const url      = URL.createObjectURL(blob);
-        const a        = document.createElement("a");
-        a.href         = url;
-        a.download     = `asistencia_${new Date().toISOString().slice(0,10)}.xlsx`;
+
+        const blob = await res.blob();
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+
+        const fechaArchivo = fecha.replace(/\//g, "-");
+        a.href = url;
+        a.download = `asistencia_${fechaArchivo}_evento_${eventoId}.xlsx`;
+
         document.body.appendChild(a);
         a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
+        a.remove();
+
+        setTimeout(() => URL.revokeObjectURL(url), 1000);
     } catch (e) {
-        alert("Error de conexión al descargar.");
-        console.error(e);
+        console.error("Error al descargar el Excel:", e);
+        alert("Error de conexión al descargar el Excel.");
     }
 }
+
+
+async function descargarExcelEvento(eventoId, fecha) {
+    try {
+        const res = await fetch(
+            `/admin/excel/evento/${eventoId}`,
+            { headers: _authHeaders() }
+        );
+
+        if (!res.ok) {
+            const data = await res.json().catch(() => ({}));
+            alert(data.detail ?? "Error al descargar el Excel.");
+            return;
+        }
+
+        const blob = await res.blob();
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+
+        const fechaArchivo = fecha.replace(/\//g, "-");
+        a.href = url;
+        a.download = `asistencia_${fechaArchivo}_evento_${eventoId}.xlsx`;
+
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+
+        URL.revokeObjectURL(url);
+    } catch (e) {
+        console.error("Error al descargar el Excel:", e);
+        alert("Error de conexión al descargar el Excel.");
+    }
+}
+
 
 // ── Gestión de Admins ──────────────────────────────────
 
@@ -459,6 +523,42 @@ async function resetearDatos() {
     } finally {
         btn.disabled = false;
         btn.textContent = "🗑️ Reiniciar datos";
+    }
+}
+
+async function eliminarEvento(eventoId, fecha) {
+    const confirmar = confirm(
+        `¿Eliminar el evento del ${fecha}?\n\n` +
+        "Se eliminarán sus asistencias y se recalcularán " +
+        "los puntos y las rachas.\n\n" +
+        "Esta acción no se puede deshacer."
+    );
+
+    if (!confirmar) return;
+
+    try {
+        const res = await fetch(`/admin/eventos/${eventoId}`, {
+            method: "DELETE",
+            headers: _authHeaders()
+        });
+
+        const data = await res.json().catch(() => ({}));
+
+        if (!res.ok) {
+            alert(data.detail ?? "No se pudo eliminar el evento.");
+            return;
+        }
+
+        alert(
+            "Evento eliminado correctamente.\n" +
+            "Asistencias eliminadas: " +
+            data.asistencias_eliminadas
+        );
+
+        await cargarDatos();
+    } catch (e) {
+        console.error("Error al eliminar el evento:", e);
+        alert("Error de conexión al eliminar el evento.");
     }
 }
 

@@ -32,8 +32,9 @@ async function obtenerEvento() {
 }
 // ── Búsqueda ───────────────────────────────────────────
 async function _ejecutarBusqueda() {
-    var texto      = document.getElementById("buscador").value.trim();
-    var contenedor = document.getElementById("resultados");
+    const texto = document.getElementById("buscador").value.trim();
+    const contenedor = document.getElementById("resultados");
+    const mensaje = document.getElementById("mensaje");
 
     if (texto.length < 2) {
         contenedor.innerHTML = "";
@@ -41,37 +42,78 @@ async function _ejecutarBusqueda() {
     }
 
     try {
-        var res  = await fetch("/buscar?nombre=" + encodeURIComponent(texto));
-        var data = await res.json();
+        const res = await fetch(
+            "/buscar?nombre=" + encodeURIComponent(texto)
+        );
 
-        if (data.length === 0) {
-            contenedor.innerHTML = "<p class=\"no-results\">Sin resultados para \"" + texto + "\"</p>";
+        if (!res.ok) {
+            throw new Error("HTTP " + res.status);
+        }
+
+        const data = await res.json();
+
+        // Adaptarse al formato nuevo del backend.
+        const resultados = Array.isArray(data)
+            ? data
+            : data.resultados;
+
+        if (!resultados || resultados.length === 0) {
+            contenedor.innerHTML = "";
+
+            if (data.ya_registrado) {
+                mostrarToast(
+                    "✅ Ya registraste tu asistencia en este evento.",
+                    true
+                );
+            } else {
+                contenedor.innerHTML =
+                    "<p class=\"no-results\">Sin resultados para \"" +
+                    texto.replace(/&/g, "&amp;").replace(/</g, "&lt;") +
+                    "\"</p>";
+            }
+
             return;
         }
 
-        // Construir botones con data-attributes (sin onclick inline)
-        var html = "";
-        for (var i = 0; i < data.length; i++) {
-            var j = data[i];
-            var nombreEsc = j.nombre.replace(/&/g, "&amp;").replace(/"/g, "&quot;");
-            html += "<button type=\"button\" data-id=\"" + j.id + "\" data-nombre=\"" + nombreEsc + "\">" + j.nombre + "</button>";
+        if (mensaje) {
+            mensaje.textContent = "";
         }
+
+        let html = "";
+
+        for (const j of resultados) {
+            const nombreEsc = j.nombre
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;");
+
+            html +=
+                '<button type="button" data-id="' + j.id +
+                '" data-nombre="' + nombreEsc + '">' +
+                nombreEsc +
+                "</button>";
+        }
+
         contenedor.innerHTML = html;
 
-        // Un solo listener de click por botón — funciona en mouse y táctil
-        var botones = contenedor.querySelectorAll("button");
-        for (var k = 0; k < botones.length; k++) {
-            botones[k].addEventListener("click", function () {
-                var id     = Number(this.dataset.id);
-                var nombre = this.dataset.nombre;
-                document.getElementById("buscador").value   = "";
-                document.getElementById("resultados").innerHTML = "";
+        const botones = contenedor.querySelectorAll("button");
+
+        botones.forEach(boton => {
+            boton.addEventListener("click", function () {
+                const id = Number(this.dataset.id);
+                const nombre = this.dataset.nombre;
+
+                document.getElementById("buscador").value = "";
+                contenedor.innerHTML = "";
+
                 registrar(id, nombre);
             });
-        }
+        });
 
     } catch (e) {
         console.error("Error al buscar:", e);
+        mostrarToast("❌ Error al buscar nombres.", false);
     }
 }
 

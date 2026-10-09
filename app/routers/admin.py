@@ -11,7 +11,10 @@ from app.schemas import (
     DashboardResponse, TopJoven,
     JovenOut,
 )
-from app.services.asistencia import obtener_o_crear_evento
+from app.services.asistencia import (
+    obtener_o_crear_evento,
+    recalcular_gamificacion,
+)
 from app.services.jovenes import (
     obtener_estadisticas_por_grupo,
     obtener_historial,
@@ -19,6 +22,8 @@ from app.services.jovenes import (
 )
 from app.services.excel import generar_excel_evento
 import app.models as models
+from zoneinfo import ZoneInfo
+import glob
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
@@ -84,16 +89,86 @@ def ver_todos(
 #  Eventos
 # ─────────────────────────────────────────────
 
-@router.post("/eventos", summary="Crear evento manualmente")
-def crear_evento(
+
+@router.delete("/eventos/{evento_id}", summary="Eliminar evento histórico")
+def eliminar_evento(
+    evento_id: int,
     db: Session = Depends(get_db),
     admin: models.Admin = Depends(get_current_admin),
 ):
-    nuevo = models.Evento(fecha=datetime.now(), activo=True)
-    db.add(nuevo)
-    db.commit()
-    db.refresh(nuevo)
-    return {"mensaje": "Evento creado", "evento_id": nuevo.id}
+    try:
+        evento = (
+            db.query(models.Evento)
+            .filter(models.Evento.id == evento_id)
+            .with_for_update()
+            .first()
+        )
+
+        if not evento:
+            raise HTTPException(
+                status_code=404,
+                detail="Evento no encontrado.",
+            )
+
+        hoy = datetime.now(
+            ZoneInfo("America/Mexico_City")
+        ).date()
+
+        if evento.fecha.date() >= hoy:
+            raise HTTPException(
+                status_code=409,
+                detail="Solo puedes eliminar eventos de fechas anteriores.",
+            )
+
+        # Eliminar las asistencias del evento.
+        asistencias_eliminadas = (
+            db.query(models.Asistencia)
+            .filter(models.Asistencia.evento_id == evento_id)
+            .delete(synchronize_session=False)
+        )
+
+        # Eliminar el evento.
+        db.delete(evento)
+
+        # Recalcular puntos y rachas antes de confirmar.
+        recalcular_gamificacion(db)
+
+        db.commit()
+
+    except HTTPException:
+        db.rollback()
+        raise
+    except Exception:
+        db.rollback()
+        raise HTTPException(
+            status_code=500,
+            detail="No se pudo eliminar el evento. No se guardaron los cambios.",
+        )
+
+    # Borrar únicamente los Excel generados para este evento.
+    archivos_eliminados = 0
+    archivos_no_eliminados = 0
+
+    patron = os.path.join(
+        BASE_DIR,
+        f"asistencia_evento_{evento_id}_*.xlsx",
+    )
+
+    for ruta in glob.glob(patron):
+        try:
+            os.remove(ruta)
+            archivos_eliminados += 1
+        except OSError:
+            archivos_no_eliminados += 1
+
+    return {
+        "mensaje": "Evento eliminado y gamificación recalculada.",
+        "evento_id": evento_id,
+        "asistencias_eliminadas": asistencias_eliminadas,
+        "archivos_excel_eliminados": archivos_eliminados,
+        "archivos_excel_no_eliminados": archivos_no_eliminados,
+    }
+
 
 # ─────────────────────────────────────────────
 #  Reinicio de datos

@@ -633,3 +633,16 @@ tbody td {
     cursor: wait;
     transform: none;
 }
+.btn-eliminar-evento {
+    background: #dc2626;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    padding: 8px 12px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.btn-eliminar-evento:hover {
+    background: #b91c1c;
+}

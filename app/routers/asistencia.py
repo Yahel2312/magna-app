@@ -34,29 +34,14 @@ router = APIRouter(tags=["Asistencia"])
     response_model=AsistenciaResponse,
     summary="Registrar asistencia",
 )
-def registrar(
-    joven_id: int,
-    db: Session = Depends(get_db),
-):
-    print("=" * 60)
-    print("REGISTRO DE ASISTENCIA")
-    print("Joven ID:", joven_id)
-
-    # Obtener automáticamente el evento correspondiente al día
+@router.post("/asistencia", response_model=AsistenciaResponse, summary="Registrar asistencia")
+def registrar(joven_id: int, db: Session = Depends(get_db)):
     evento = obtener_o_crear_evento(db)
-
-    print("Evento utilizado:", evento.id)
-    print("Fecha del evento:", evento.fecha)
-
     resultado = registrar_asistencia(
         joven_id=joven_id,
         evento_id=evento.id,
-        db=db,
+        db=db
     )
-
-    print("Resultado:", resultado)
-    print("=" * 60)
-
     return resultado
 
 
