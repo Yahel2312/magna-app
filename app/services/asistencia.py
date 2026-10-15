@@ -7,7 +7,7 @@ import app.models as models
 from app.schemas import AsistenciaResponse
 
 ZONA_HORARIA = ZoneInfo("America/Mexico_City")
-HORA_INICIO = time(18, 0)
+HORA_INICIO = time(17, 20)
 HORA_FIN = time(19, 30)
 
 
@@ -108,7 +108,7 @@ def registrar_asistencia(
         if not (HORA_INICIO <= hora_actual < HORA_FIN):
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
-                detail="El registro de asistencia está disponible de 6:00 PM a 7:30 PM."
+                detail=detail="El registro de asistencia está disponible de 5:20 PM a 7:30 PM."
             )
 
     # Evitar duplicados.
