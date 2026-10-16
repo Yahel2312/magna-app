@@ -108,7 +108,7 @@ def registrar_asistencia(
         if not (HORA_INICIO <= hora_actual < HORA_FIN):
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
-                detail=detail="El registro de asistencia está disponible de 5:20 PM a 7:30 PM."
+               detail="El registro de asistencia está disponible de 5:20 PM a 7:30 PM."
             )
 
     # Evitar duplicados.
